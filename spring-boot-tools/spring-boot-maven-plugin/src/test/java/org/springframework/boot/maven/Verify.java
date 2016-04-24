@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,13 @@ import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
+ * @author Stephane Nicoll
  */
 public final class Verify {
 
@@ -67,6 +71,17 @@ public final class Verify {
 
 	public static void verifyModule(File file) throws Exception {
 		new ModuleArchiveVerification(file).verify();
+	}
+
+	public static Properties verifyBuildInfo(File file, String group, String artifact,
+			String name, String version) throws IOException {
+		FileSystemResource resource = new FileSystemResource(file);
+		Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+		assertThat(properties.get("build.group")).isEqualTo(group);
+		assertThat(properties.get("build.artifact")).isEqualTo(artifact);
+		assertThat(properties.get("build.name")).isEqualTo(name);
+		assertThat(properties.get("build.version")).isEqualTo(version);
+		return properties;
 	}
 
 	public static class ArchiveVerifier {
@@ -218,14 +233,15 @@ public final class Verify {
 		@Override
 		protected void verifyZipEntries(ArchiveVerifier verifier) throws Exception {
 			super.verifyZipEntries(verifier);
-			verifier.assertHasEntryNameStartingWith("lib/spring-context");
-			verifier.assertHasEntryNameStartingWith("lib/spring-core");
-			verifier.assertHasEntryNameStartingWith("lib/javax.servlet-api-3");
+			verifier.assertHasEntryNameStartingWith("BOOT-INF/lib/spring-context");
+			verifier.assertHasEntryNameStartingWith("BOOT-INF/lib/spring-core");
+			verifier.assertHasEntryNameStartingWith("BOOT-INF/lib/javax.servlet-api-3");
 			assertThat(verifier
-					.hasEntry("org/" + "springframework/boot/loader/JarLauncher.class"))
+					.hasEntry("org/springframework/boot/loader/JarLauncher.class"))
 							.as("Unpacked launcher classes").isTrue();
-			assertThat(verifier.hasEntry("org/" + "test/SampleApplication.class"))
-					.as("Own classes").isTrue();
+			assertThat(verifier
+					.hasEntry("BOOT-INF/classes/org/test/SampleApplication.class"))
+							.as("Own classes").isTrue();
 		}
 
 		@Override

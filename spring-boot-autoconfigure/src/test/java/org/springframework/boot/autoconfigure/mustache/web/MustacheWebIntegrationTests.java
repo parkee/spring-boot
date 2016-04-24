@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,20 +36,19 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.mustache.MustacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.mustache.MustacheResourceTemplateLoader;
-import org.springframework.boot.autoconfigure.mustache.web.MustacheWebIntegrationTests.Application;
 import org.springframework.boot.autoconfigure.web.DispatcherServletAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.EmbeddedServletContainerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerPropertiesAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.TestRestTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Controller;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,10 +59,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Dave Syer
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(Application.class)
-@IntegrationTest("server.port:0")
-@WebAppConfiguration
+@RunWith(SpringRunner.class)
+@DirtiesContext
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class MustacheWebIntegrationTests {
 
 	@Autowired
@@ -97,16 +95,6 @@ public class MustacheWebIntegrationTests {
 		String body = new TestRestTemplate()
 				.getForObject("http://localhost:" + this.port + "/partial", String.class);
 		assertThat(body.contains("Hello World")).isTrue();
-	}
-
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	@Import({ EmbeddedServletContainerAutoConfiguration.class,
-			ServerPropertiesAutoConfiguration.class,
-			DispatcherServletAutoConfiguration.class,
-			PropertyPlaceholderAutoConfiguration.class })
-	protected @interface MinimalWebConfiguration {
 	}
 
 	@Configuration
@@ -145,6 +133,16 @@ public class MustacheWebIntegrationTests {
 			SpringApplication.run(Application.class, args);
 		}
 
+	}
+
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.RUNTIME)
+	@Documented
+	@Import({ EmbeddedServletContainerAutoConfiguration.class,
+			ServerPropertiesAutoConfiguration.class,
+			DispatcherServletAutoConfiguration.class,
+			PropertyPlaceholderAutoConfiguration.class })
+	protected @interface MinimalWebConfiguration {
 	}
 
 }

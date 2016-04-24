@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import io.undertow.Undertow.Builder;
 import io.undertow.servlet.api.DeploymentInfo;
@@ -186,6 +188,49 @@ public class UndertowEmbeddedServletContainerFactoryTests
 		File accessLog = new File(accessLogDirectory, "access_log.log");
 		awaitFile(accessLog);
 		assertThat(accessLogDirectory.listFiles()).contains(accessLog);
+	}
+
+	@Override
+	protected void addConnector(final int port,
+			AbstractEmbeddedServletContainerFactory factory) {
+		((UndertowEmbeddedServletContainerFactory) factory)
+				.addBuilderCustomizers(new UndertowBuilderCustomizer() {
+
+					@Override
+					public void customize(Builder builder) {
+						builder.addHttpListener(port, "0.0.0.0");
+					}
+				});
+	}
+
+	@Test(expected = SSLHandshakeException.class)
+	public void sslRestrictedProtocolsEmptyCipherFailure() throws Exception {
+		testRestrictedSSLProtocolsAndCipherSuites(new String[] { "TLSv1.2" },
+				new String[] { "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" });
+	}
+
+	@Test(expected = SSLHandshakeException.class)
+	public void sslRestrictedProtocolsECDHETLS1Failure() throws Exception {
+		testRestrictedSSLProtocolsAndCipherSuites(new String[] { "TLSv1" },
+				new String[] { "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" });
+	}
+
+	@Test
+	public void sslRestrictedProtocolsECDHESuccess() throws Exception {
+		testRestrictedSSLProtocolsAndCipherSuites(new String[] { "TLSv1.2" },
+				new String[] { "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" });
+	}
+
+	@Test
+	public void sslRestrictedProtocolsRSATLS12Success() throws Exception {
+		testRestrictedSSLProtocolsAndCipherSuites(new String[] { "TLSv1.2" },
+				new String[] { "TLS_RSA_WITH_AES_128_CBC_SHA256" });
+	}
+
+	@Test(expected = SSLHandshakeException.class)
+	public void sslRestrictedProtocolsRSATLS11Failure() throws Exception {
+		testRestrictedSSLProtocolsAndCipherSuites(new String[] { "TLSv1.1" },
+				new String[] { "TLS_RSA_WITH_AES_128_CBC_SHA256" });
 	}
 
 	@Override

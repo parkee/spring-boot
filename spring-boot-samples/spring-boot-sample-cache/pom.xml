@@ -50,6 +50,12 @@
 		-->
 		<!--
 		<dependency>
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+		</dependency>
+		-->
+		<!--
+		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
 		</dependency>
@@ -66,6 +72,16 @@
 		<dependency>
 			<groupId>org.infinispan</groupId>
 			<artifactId>infinispan-jcache</artifactId>
+		</dependency>
+		-->
+		<!--
+		<dependency>
+			<groupId>com.couchbase.client</groupId>
+			<artifactId>java-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.couchbase.client</groupId>
+			<artifactId>couchbase-spring-cache</artifactId>
 		</dependency>
 		-->
 		<!--

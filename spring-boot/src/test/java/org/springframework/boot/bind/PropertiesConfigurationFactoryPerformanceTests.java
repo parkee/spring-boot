@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 
-import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.context.support.StaticMessageSource;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.validation.Validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +56,8 @@ public class PropertiesConfigurationFactoryPerformanceTests {
 
 	@BeforeClass
 	public static void init() {
-		EnvironmentTestUtils.addEnvironment(environment, "name: blah", "bar: blah");
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(environment,
+				"name=blah", "bar=blah");
 	}
 
 	@Theory

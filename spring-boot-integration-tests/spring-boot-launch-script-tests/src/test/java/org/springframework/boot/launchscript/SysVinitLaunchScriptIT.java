@@ -48,7 +48,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import org.springframework.boot.ansi.AnsiColor;
-import org.springframework.boot.test.assertj.Matched;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -244,7 +243,8 @@ public class SysVinitLaunchScriptIT {
 		BuildImageResultCallback resultCallback = new BuildImageResultCallback();
 		String dockerfile = "src/test/resources/conf/" + this.os + "/" + this.version
 				+ "/Dockerfile";
-		docker.buildImageCmd(new File(dockerfile)).exec(resultCallback);
+		String tag = "spring-boot-it/" + this.os.toLowerCase() + ":" + this.version;
+		docker.buildImageCmd(new File(dockerfile)).withTag(tag).exec(resultCallback);
 		String imageId = resultCallback.awaitImageId();
 		return imageId;
 	}
@@ -285,7 +285,14 @@ public class SysVinitLaunchScriptIT {
 
 	private Condition<String> coloredString(AnsiColor color, String string) {
 		String colorString = ESC + "[0;" + color + "m" + string + ESC + "[0m";
-		return Matched.by(containsString(colorString));
+		return new Condition<String>() {
+
+			@Override
+			public boolean matches(String value) {
+				return containsString(colorString).matches(value);
+			}
+
+		};
 	}
 
 	private String extractPid(String output) {

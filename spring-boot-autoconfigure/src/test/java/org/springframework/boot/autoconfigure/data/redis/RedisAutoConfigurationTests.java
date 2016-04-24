@@ -25,7 +25,7 @@ import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.test.EnvironmentTestUtils;
+import org.springframework.boot.test.util.EnvironmentTestUtils;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
@@ -110,9 +110,8 @@ public class RedisAutoConfigurationTests {
 		if (isAtLeastOneNodeAvailable(clusterNodes)) {
 			load("spring.redis.cluster.nodes[0]:" + clusterNodes.get(0),
 					"spring.redis.cluster.nodes[1]:" + clusterNodes.get(1));
-			assertThat(
-					this.context.getBean(JedisConnectionFactory.class)
-							.getClusterConnection()).isNotNull();
+			assertThat(this.context.getBean(JedisConnectionFactory.class)
+					.getClusterConnection()).isNotNull();
 		}
 	}
 

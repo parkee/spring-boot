@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,10 @@ import org.springframework.util.Assert;
  *
  * @author Eddú Meléndez
  * @author Phillip Webb
+ * @author Andy Wilkinson
  * @since 1.3.0
  */
-@ConfigurationProperties(prefix = "endpoints.flyway", ignoreUnknownFields = true)
+@ConfigurationProperties(prefix = "endpoints.flyway")
 public class FlywayEndpoint extends AbstractEndpoint<List<FlywayMigration>> {
 
 	private final Flyway flyway;
@@ -80,7 +81,8 @@ public class FlywayEndpoint extends AbstractEndpoint<List<FlywayMigration>> {
 		public FlywayMigration(MigrationInfo info) {
 			this.type = info.getType();
 			this.checksum = info.getChecksum();
-			this.version = info.getVersion().toString();
+			this.version = info.getVersion() != null ? info.getVersion().toString()
+					: null;
 			this.description = info.getDescription();
 			this.script = info.getScript();
 			this.state = info.getState();

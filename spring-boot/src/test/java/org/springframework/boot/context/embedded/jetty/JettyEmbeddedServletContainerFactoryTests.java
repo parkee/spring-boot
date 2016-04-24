@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.Test;
@@ -58,6 +59,7 @@ import static org.mockito.Mockito.mock;
  * @author Phillip Webb
  * @author Dave Syer
  * @author Andy Wilkinson
+ * @author Henri Kerola
  */
 public class JettyEmbeddedServletContainerFactoryTests
 		extends AbstractEmbeddedServletContainerFactoryTests {
@@ -136,6 +138,72 @@ public class JettyEmbeddedServletContainerFactoryTests
 				.containsExactly("ALPHA", "BRAVO", "CHARLIE");
 	}
 
+	@Override
+	protected void addConnector(final int port,
+			AbstractEmbeddedServletContainerFactory factory) {
+		((JettyEmbeddedServletContainerFactory) factory)
+				.addServerCustomizers(new JettyServerCustomizer() {
+
+					@Override
+					public void customize(Server server) {
+						ServerConnector connector = new ServerConnector(server);
+						connector.setPort(port);
+						server.addConnector(connector);
+					}
+
+				});
+	}
+
+	@Test
+	public void sslEnabledMultiProtocolsConfiguration() throws Exception {
+		Ssl ssl = new Ssl();
+		ssl.setKeyStore("src/test/resources/test.jks");
+		ssl.setKeyStorePassword("secret");
+		ssl.setKeyPassword("password");
+		ssl.setCiphers(new String[] { "ALPHA", "BRAVO", "CHARLIE" });
+		ssl.setEnabledProtocols(new String[] { "TLSv1.1", "TLSv1.2" });
+
+		JettyEmbeddedServletContainerFactory factory = getFactory();
+		factory.setSsl(ssl);
+
+		this.container = factory.getEmbeddedServletContainer();
+		this.container.start();
+
+		JettyEmbeddedServletContainer jettyContainer = (JettyEmbeddedServletContainer) this.container;
+		ServerConnector connector = (ServerConnector) jettyContainer.getServer()
+				.getConnectors()[0];
+		SslConnectionFactory connectionFactory = connector
+				.getConnectionFactory(SslConnectionFactory.class);
+
+		assertThat(connectionFactory.getSslContextFactory().getIncludeProtocols())
+				.isEqualTo(new String[] { "TLSv1.1", "TLSv1.2" });
+	}
+
+	@Test
+	public void sslEnabledProtocolsConfiguration() throws Exception {
+		Ssl ssl = new Ssl();
+		ssl.setKeyStore("src/test/resources/test.jks");
+		ssl.setKeyStorePassword("secret");
+		ssl.setKeyPassword("password");
+		ssl.setCiphers(new String[] { "ALPHA", "BRAVO", "CHARLIE" });
+		ssl.setEnabledProtocols(new String[] { "TLSv1.1" });
+
+		JettyEmbeddedServletContainerFactory factory = getFactory();
+		factory.setSsl(ssl);
+
+		this.container = factory.getEmbeddedServletContainer();
+		this.container.start();
+
+		JettyEmbeddedServletContainer jettyContainer = (JettyEmbeddedServletContainer) this.container;
+		ServerConnector connector = (ServerConnector) jettyContainer.getServer()
+				.getConnectors()[0];
+		SslConnectionFactory connectionFactory = connector
+				.getConnectionFactory(SslConnectionFactory.class);
+
+		assertThat(connectionFactory.getSslContextFactory().getIncludeProtocols())
+				.isEqualTo(new String[] { "TLSv1.1" });
+	}
+
 	private void assertTimeout(JettyEmbeddedServletContainerFactory factory,
 			int expected) {
 		this.container = factory.getEmbeddedServletContainer();
@@ -188,6 +256,26 @@ public class JettyEmbeddedServletContainerFactoryTests
 		JettyEmbeddedServletContainerFactory factory = getFactory();
 		factory.setUseForwardHeaders(true);
 		assertForwardHeaderIsUsed(factory);
+	}
+
+	@Test
+	public void defaultThreadPool() throws Exception {
+		JettyEmbeddedServletContainerFactory factory = getFactory();
+		factory.setThreadPool(null);
+		assertThat(factory.getThreadPool()).isNull();
+		JettyEmbeddedServletContainer servletContainer = (JettyEmbeddedServletContainer) factory
+				.getEmbeddedServletContainer();
+		assertThat(servletContainer.getServer().getThreadPool()).isNotNull();
+	}
+
+	@Test
+	public void customThreadPool() throws Exception {
+		JettyEmbeddedServletContainerFactory factory = getFactory();
+		ThreadPool threadPool = mock(ThreadPool.class);
+		factory.setThreadPool(threadPool);
+		JettyEmbeddedServletContainer servletContainer = (JettyEmbeddedServletContainer) factory
+				.getEmbeddedServletContainer();
+		assertThat(servletContainer.getServer().getThreadPool()).isSameAs(threadPool);
 	}
 
 	@Override

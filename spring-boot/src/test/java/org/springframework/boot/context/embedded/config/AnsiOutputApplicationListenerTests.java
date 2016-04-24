@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,11 @@ import org.springframework.boot.ansi.AnsiOutput;
 import org.springframework.boot.ansi.AnsiOutput.Enabled;
 import org.springframework.boot.ansi.AnsiOutputEnabledValue;
 import org.springframework.boot.context.config.AnsiOutputApplicationListener;
-import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,7 +83,8 @@ public class AnsiOutputApplicationListenerTests {
 	@Test
 	public void disabledViaApplicationProperties() throws Exception {
 		ConfigurableEnvironment environment = new StandardEnvironment();
-		EnvironmentTestUtils.addEnvironment(environment, "spring.config.name:ansi");
+		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(environment,
+				"spring.config.name=ansi");
 		SpringApplication application = new SpringApplication(Config.class);
 		application.setWebEnvironment(false);
 		application.setEnvironment(environment);

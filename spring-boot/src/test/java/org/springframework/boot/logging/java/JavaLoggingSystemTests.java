@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2014 the original author or authors.
+ * Copyright 2012-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.springframework.boot.logging.AbstractLoggingSystemTests;
 import org.springframework.boot.logging.LogLevel;
-import org.springframework.boot.test.OutputCapture;
+import org.springframework.boot.testutil.InternalOutputCapture;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -56,7 +56,7 @@ public class JavaLoggingSystemTests extends AbstractLoggingSystemTests {
 			getClass().getClassLoader());
 
 	@Rule
-	public OutputCapture output = new OutputCapture();
+	public InternalOutputCapture output = new InternalOutputCapture();
 
 	private Jdk14Logger logger;
 

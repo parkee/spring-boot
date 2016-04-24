@@ -139,6 +139,22 @@ public class ConfigurationMetadataRepositoryJsonBuilderTests
 	}
 
 	@Test
+	public void emptyGroups() throws IOException {
+		InputStream in = getInputStreamFor("empty-groups");
+		try {
+			ConfigurationMetadataRepository repo = ConfigurationMetadataRepositoryJsonBuilder
+					.create(in).build();
+			validateEmptyGroup(repo);
+			assertThat(repo.getAllGroups()).hasSize(1);
+			contains(repo.getAllProperties(), "name", "title");
+			assertThat(repo.getAllProperties()).hasSize(2);
+		}
+		finally {
+			in.close();
+		}
+	}
+
+	@Test
 	public void builderInstancesAreIsolated() throws IOException {
 		InputStream foo = getInputStreamFor("foo");
 		InputStream bar = getInputStreamFor("bar");
@@ -205,38 +221,60 @@ public class ConfigurationMetadataRepositoryJsonBuilderTests
 		contains(source.getProperties(), "spring.map.first", "spring.map.second",
 				"spring.map.keys", "spring.map.values");
 		assertThat(source.getProperties()).hasSize(4);
-		ConfigurationMetadataProperty first = repo.getAllProperties().get("spring.map.first");
+		ConfigurationMetadataProperty first = repo.getAllProperties()
+				.get("spring.map.first");
 		assertThat(first.getHints().getKeyHints()).hasSize(2);
 		assertThat(first.getHints().getValueProviders()).hasSize(0);
 		assertThat(first.getHints().getKeyHints().get(0).getValue()).isEqualTo("one");
-		assertThat(first.getHints().getKeyHints().get(0).getDescription()).isEqualTo("First.");
+		assertThat(first.getHints().getKeyHints().get(0).getDescription())
+				.isEqualTo("First.");
 		assertThat(first.getHints().getKeyHints().get(1).getValue()).isEqualTo("two");
-		assertThat(first.getHints().getKeyHints().get(1).getDescription()).isEqualTo("Second.");
-		ConfigurationMetadataProperty second = repo.getAllProperties().get("spring.map.second");
+		assertThat(first.getHints().getKeyHints().get(1).getDescription())
+				.isEqualTo("Second.");
+		ConfigurationMetadataProperty second = repo.getAllProperties()
+				.get("spring.map.second");
 		assertThat(second.getHints().getValueHints()).hasSize(2);
 		assertThat(second.getHints().getValueProviders()).hasSize(0);
 		assertThat(second.getHints().getValueHints().get(0).getValue()).isEqualTo("42");
-		assertThat(second.getHints().getValueHints().get(0).getDescription()).isEqualTo("Choose me.");
+		assertThat(second.getHints().getValueHints().get(0).getDescription())
+				.isEqualTo("Choose me.");
 		assertThat(second.getHints().getValueHints().get(1).getValue()).isEqualTo("24");
 		assertThat(second.getHints().getValueHints().get(1).getDescription()).isNull();
-		ConfigurationMetadataProperty keys = repo.getAllProperties().get("spring.map.keys");
+		ConfigurationMetadataProperty keys = repo.getAllProperties()
+				.get("spring.map.keys");
 		assertThat(keys.getHints().getValueHints()).hasSize(0);
 		assertThat(keys.getHints().getValueProviders()).hasSize(1);
 		assertThat(keys.getHints().getValueProviders().get(0).getName()).isEqualTo("any");
-		ConfigurationMetadataProperty values = repo.getAllProperties().get("spring.map.values");
+		ConfigurationMetadataProperty values = repo.getAllProperties()
+				.get("spring.map.values");
 		assertThat(values.getHints().getValueHints()).hasSize(0);
 		assertThat(values.getHints().getValueProviders()).hasSize(1);
-		assertThat(values.getHints().getValueProviders().get(0).getName()).isEqualTo("handle-as");
-		assertThat(values.getHints().getValueProviders().get(0).getParameters()).hasSize(1);
-		assertThat(values.getHints().getValueProviders().get(0).getParameters().get("target"))
-				.isEqualTo("java.lang.Integer");
+		assertThat(values.getHints().getValueProviders().get(0).getName())
+				.isEqualTo("handle-as");
+		assertThat(values.getHints().getValueProviders().get(0).getParameters())
+				.hasSize(1);
+		assertThat(values.getHints().getValueProviders().get(0).getParameters()
+				.get("target")).isEqualTo("java.lang.Integer");
 	}
 
+	private void validateEmptyGroup(ConfigurationMetadataRepository repo) {
+		ConfigurationMetadataGroup group = repo.getAllGroups().get("");
+		contains(group.getSources(), "org.acme.Foo", "org.acme.Bar");
+		ConfigurationMetadataSource source = group.getSources().get("org.acme.Foo");
+		contains(source.getProperties(), "name");
+		assertThat(source.getProperties()).hasSize(1);
+		ConfigurationMetadataSource source2 = group.getSources().get("org.acme.Bar");
+		contains(source2.getProperties(), "title");
+		assertThat(source2.getProperties()).hasSize(1);
+		validatePropertyHints(repo.getAllProperties().get("name"), 0, 0);
+		validatePropertyHints(repo.getAllProperties().get("title"), 0, 0);
+	}
 
 	private void validatePropertyHints(ConfigurationMetadataProperty property,
 			int valueHints, int valueProviders) {
 		assertThat(property.getHints().getValueHints().size()).isEqualTo(valueHints);
-		assertThat(property.getHints().getValueProviders().size()).isEqualTo(valueProviders);
+		assertThat(property.getHints().getValueProviders().size())
+				.isEqualTo(valueProviders);
 	}
 
 	private void contains(Map<String, ?> source, String... keys) {

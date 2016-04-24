@@ -28,15 +28,16 @@ import org.springframework.boot.bind.ConverterBindingTests.TestConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.GenericConverter;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,9 +47,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Dave Syer
  * @author Stephane Nicoll
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(TestConfig.class)
-@IntegrationTest({ "foo=one", "bar=two" })
+@RunWith(SpringRunner.class)
+@DirtiesContext
+@ContextConfiguration(classes = TestConfig.class, loader = SpringApplicationBindContextLoader.class)
+@TestPropertySource(properties = { "foo=one", "bar=two" })
 public class ConverterBindingTests {
 
 	@Value("${foo:}")
